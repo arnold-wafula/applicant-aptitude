@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructions - Postbank Psychometric Test</title>
+    <style>
+        /* Centering the card */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        ul {
+            text-align: left;
+            padding: 0;
+            list-style-position: inside;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Instructions</h2>
+        <p id="id-display"></p>
+        <p>Follow these instructions carefully before proceeding with the test.</p>
+
+        <ul>
+            <li>Ensure you have a stable internet connection.</li>
+            <li>Read each question carefully before answering.</li>
+            <li>You cannot go back once you move to the next question.</li>
+            <li>Once you complete the test, click on the submit button.</li>
+        </ul>
+
+        <button id="proceedBtn">Proceed</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const idNumber = urlParams.get('id');
+
+            // Display ID or show error message
+            const idDisplay = document.getElementById("id-display");
+            if (idNumber) {
+                idDisplay.textContent = "Welcome, ID: " + idNumber;
+            } else {
+                idDisplay.textContent = "No ID provided.";
+                document.getElementById("proceedBtn").disabled = true;
+            }
+
+            // Prevent user from going back to the index page
+            history.replaceState(null, "", window.location.href);
+        });
+
+        document.getElementById("proceedBtn").addEventListener("click", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idNumber = urlParams.get('id');
+
+            if (idNumber) {
+                window.location.href = "/test?id=" + idNumber;
+            } else {
+                alert("No valid ID found. Please try again.");
+            }
+        });
+
+        // Disable back button
+        window.onpopstate = function () {
+            history.pushState(null, "", window.location.href);
+        };
+    </script>
+</body>
+</html>

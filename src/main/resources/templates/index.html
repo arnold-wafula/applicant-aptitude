@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enter ID Number - Postbank Psychometric Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        a { text-decoration: none; }
+        .error { display: none; color: #ff0000; margin-top: 10px; }
+        .login-page {
+            width: 100%; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            background-color: #343a40;
+        }
+        .form-container {
+            background: white; padding: 30px;
+            border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+        .modal-content {
+            padding: 20px; text-align: center; border-radius: .3rem;
+        }
+        .modal-content.failure { background-color: #dc3545 !important; color: #ffffff !important; }
+        .modal-content.success { background-color: #28a745 !important; color: #ffffff !important; }
+        .modal-body i { font-size: 2rem; margin-bottom: 10px; }
+        .modal-body span { font-size: 1rem; }
+        #loadingIndicator {
+            display: none; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="form-container">
+                        <h2 class="text-center">Postbank Psychometric Test</h2>
+                        <form id="idNumberForm" method="post">
+                            <div class="mb-3">
+                                <label for="idNumber">ID Number<span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <div class="input-group-text"><i class="bi bi-person-fill"></i></div>
+                                    <input type="text" id="idNumber" name="idNumber" class="form-control" placeholder="Enter ID Number" required>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="button" onclick="checkIdExists()" class="btn btn-primary">Next</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID does not exist Modal -->
+    <div class="modal fade" id="failureModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content failure">
+                <div class="modal-body">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>ID Number does not exist.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID exists Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content success">
+                <div class="modal-body">
+                    <i class="fas fa-check-circle"></i>
+                    <span>ID Number exists. Proceeding...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator">
+        <p>Loading...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function showLoading() {
+            $('#loadingIndicator').show();
+        }
+
+        function hideLoading() {
+            $('#loadingIndicator').hide();
+        }
+
+        function checkIdExists() {
+            const idNumber = $('#idNumber').val().trim();
+            if (!idNumber) {
+                alert("Please enter your ID Number.");
+                return;
+            }
+
+            showLoading();
+
+            fetch(`/api/validate/${encodeURIComponent(idNumber)}`, {
+                method: "GET",
+                redirect: "follow"
+            })
+                .then(response => {
+                    hideLoading();
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data.exists === false) {
+                        $('#failureModal').modal('show');
+                    } else if (data.exists === true && !data.hasCompletedTest) {
+                        // Redirect to instructions if the user exists but hasn't completed the test
+                        window.location.href = `/instructions?id=${idNumber}`;
+                    } else if (data.exists === true && data.hasCompletedTest) {
+                        // Show a message if they have already completed the test
+                        alert("You have already completed the test.");
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error:', error);
+                    alert("An error occurred. Please try again.");
+                });
+        }
+    </script>
+</body>
+</html>
