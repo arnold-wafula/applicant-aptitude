@@ -21,25 +21,16 @@ public class IdCheckController {
     @GetMapping("/validate/{idNumber}")
     public ResponseEntity<Map<String, Object>> validateApplicant(@PathVariable String idNumber) {
         Optional<Applicant> applicant = idCheckService.findByIdNumber(idNumber);
+        Map<String, Object> response = new HashMap<>();
 
         if (applicant.isPresent()) {
             Applicant existingApplicant = applicant.get();
-
-            // Check if applicant has already completed the test
-            if (existingApplicant.isHasCompletedTest()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("exists", true);
-                response.put("message", "You have already attempted the test.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);  // Return forbidden status
-            }
-
-            // If applicant exists and has not completed the test - proceed
-            Map<String, Object> response = new HashMap<>();
             response.put("exists", true);
-            response.put("message", "Proceed to the test.");
-            response.put("redirect", "/instructions?id=" + idNumber);  // Add redirection URL
+            response.put("hasCompletedTest", existingApplicant.isHasCompletedTest());
 
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+            return ResponseEntity.ok(response);
+
+            //return ResponseEntity.status(HttpStatus.OK).body(response);
 //            return ResponseEntity
 //                    .status(HttpStatus.FOUND)
 //                    .header("Location", "/instructions?id=" + idNumber)
@@ -49,9 +40,6 @@ public class IdCheckController {
             //response.put("message", "ID Found. You may proceed to the test.");
             //return ResponseEntity.ok(response);
         } else {
-            // If applicant does not exist, return an error
-            Map<String, Object> response = new HashMap<>();
-
             response.put("exists", false);
             response.put("message", "ID not found. You cannot proceed.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

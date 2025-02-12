@@ -18,22 +18,38 @@ public class QuestionService {
     }
 
     public List<Question> getAllQuestions() {
-        List<Question> questions = questionRepository.findAll();
-        if (questions.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No questions found.");
-        }
-
-        Collections.shuffle(questions); // Shuffle
-        return questions;
+        return shuffleQuestions(questionRepository.findAll());
     }
 
     public List<Question> getQuestionsByCategory(String category) {
-        List<Question> questions = questionRepository.findByCategory(category);
-        if (questions.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No questions found for category: " + category);
-        }
+        return shuffleQuestions(questionRepository.findByCategory(category));
+    }
 
-        Collections.shuffle(questions); // Shuffle
+    private List<Question> shuffleQuestions(List<Question> questions) {
+        if (questions.isEmpty()) {
+            return Collections.emptyList(); // Return an empty list instead of an exception
+        }
+        Collections.shuffle(questions);
         return questions;
     }
+
+//    public List<Question> getAllQuestions() {
+//        List<Question> questions = questionRepository.findAll();
+//        if (questions.isEmpty()) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No questions found.");
+//        }
+//
+//        Collections.shuffle(questions); // Shuffle
+//        return questions;
+//    }
+
+//    public List<Question> getQuestionsByCategory(String category) {
+//        List<Question> questions = questionRepository.findByCategory(category);
+//        if (questions.isEmpty()) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No questions found for category: " + category);
+//        }
+//
+//        Collections.shuffle(questions); // Shuffle
+//        return questions;
+//    }
 }

@@ -54,14 +54,17 @@ public class QuestionController {
 
         for (UserResponseDTO responseDTO : responses) {
             Question question = questionRepository.findById(responseDTO.getQuestionId()).orElse(null);
-            if (question != null) {
-                String answer = responseDTO.getAnswer() == null ? "" : responseDTO.getAnswer();
-                if (answer.equalsIgnoreCase(String.valueOf(question.getCorrectOption()))) {
-                    correctAnswers++;
-                }
-                UserResponse response = new UserResponse(userId, question, answer);
-                userResponseRepository.save(response);
+            if (question == null) {
+                continue; // skip invalid questions
             }
+
+            String answer = responseDTO.getAnswer();
+            if (answer != null && answer.equalsIgnoreCase(String.valueOf(question.getCorrectOption()))) {
+                correctAnswers++;
+            }
+
+            UserResponse response = new UserResponse(userId, question, answer);
+            userResponseRepository.save(response);
         }
 
         // Calculate percentage
@@ -72,6 +75,8 @@ public class QuestionController {
         response.put("message", "Answers submitted successfully!");
         response.put("score", String.format("%.2f", scorePercentage));
         response.put("status", passed ? "pass" : "fail");
+        response.put("correctAnswers", String.valueOf(correctAnswers));
+        response.put("totalQuestions", String.valueOf(totalQuestions));
 
         return ResponseEntity.ok(response);
     }

@@ -114,25 +114,22 @@
 
             fetch(`/api/validate/${encodeURIComponent(idNumber)}`, {
                 method: "GET",
-                redirect: "follow"
+                headers: {
+                    "Content-Type": "application/json"
+                }
             })
-                .then(response => {
+                .then(response => response.json())
+                .then(responseData => {
                     hideLoading();
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    } else {
-                        return response.json();
-                    }
-                })
-                .then(data => {
-                    if (data.exists === false) {
+
+                    if (responseData.exists === false) {
                         $('#failureModal').modal('show');
-                    } else if (data.exists === true && !data.hasCompletedTest) {
-                        // Redirect to instructions if the user exists but hasn't completed the test
-                        window.location.href = `/instructions?id=${idNumber}`;
-                    } else if (data.exists === true && data.hasCompletedTest) {
-                        // Show a message if they have already completed the test
-                        alert("You have already completed the test.");
+                    } else if (responseData.exists === true) {
+                        if (responseData.hasCompletedTest) {
+                            alert("You have already completed the test.");
+                        } else {
+                            window.location.href = `/instructions?id=${idNumber}`;
+                        }
                     }
                 })
                 .catch(error => {
