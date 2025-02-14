@@ -6,9 +6,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -26,19 +29,19 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())  // Disable CSRF if not needed
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)) // Allow session storage
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(new AntPathRequestMatcher("/index")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/instructions/**")).authenticated()
-                        .requestMatchers(new AntPathRequestMatcher("/api/logout")).authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/instructions")).authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/test")).authenticated()
                 )
+                .addFilterBefore(idNumberAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Register the custom filter
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
-                )
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(idNumberAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                );
 
         return http.build();
     }

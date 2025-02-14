@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "tm_recruitment_aptitude_questions")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Prevents serialization issues
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Question {
 
     @Id

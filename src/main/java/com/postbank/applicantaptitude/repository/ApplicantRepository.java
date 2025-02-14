@@ -8,7 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ApplicantRepository extends JpaRepository<Applicant, String> {
-    Optional<Applicant> findByIdNumber(String idNumber);
-
-    //List<Applicant> findByHasCompletedTestFalse();
+    Optional<Applicant> findByIdNumberOrPassport(String idNumberOrPassport);
 }

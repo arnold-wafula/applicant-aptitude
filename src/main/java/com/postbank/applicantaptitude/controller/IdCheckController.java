@@ -1,12 +1,14 @@
 package com.postbank.applicantaptitude.controller;
 
 import com.postbank.applicantaptitude.entity.Applicant;
+import com.postbank.applicantaptitude.entity.ApplicantInfo;
 import com.postbank.applicantaptitude.service.IdCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,27 +20,33 @@ public class IdCheckController {
     @Autowired
     private IdCheckService idCheckService;
 
-    @GetMapping("/validate/{idNumber}")
-    public ResponseEntity<Map<String, Object>> validateApplicant(@PathVariable String idNumber) {
+    @GetMapping("/validate/{idNumber}/{dob}")
+    public ResponseEntity<Map<String, Object>> validateApplicant(
+            @PathVariable String idNumber,
+            @PathVariable String dob,
+            HttpSession session) {
         Optional<Applicant> applicant = idCheckService.findByIdNumber(idNumber);
+        Optional<ApplicantInfo> applicantInfo = idCheckService.findDobByIdNumber(idNumber);
+
         Map<String, Object> response = new HashMap<>();
 
-        if (applicant.isPresent()) {
-            Applicant existingApplicant = applicant.get();
+        if (applicant.isPresent() && applicantDetails.isPresent()) {
+            ApplicantInfo details = applicantDetails.get();
+
+            // Validate DOB from separate table
+            if (!details.getDob().equals(dob)) {
+                response.put("exists", false);
+                response.put("message", "ID found but DOB does not match. Access denied.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Store user session
+            session.setAttribute("AUTHENTICATED_USER", idNumber);
+
             response.put("exists", true);
-            response.put("hasCompletedTest", existingApplicant.isHasCompletedTest());
+            response.put("hasCompletedTest", applicant.get().isHasCompletedTest());
 
             return ResponseEntity.ok(response);
-
-            //return ResponseEntity.status(HttpStatus.OK).body(response);
-//            return ResponseEntity
-//                    .status(HttpStatus.FOUND)
-//                    .header("Location", "/instructions?id=" + idNumber)
-//                    .build();
-
-            //response.put("exists", true);
-            //response.put("message", "ID Found. You may proceed to the test.");
-            //return ResponseEntity.ok(response);
         } else {
             response.put("exists", false);
             response.put("message", "ID not found. You cannot proceed.");
